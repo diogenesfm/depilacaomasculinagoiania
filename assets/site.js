@@ -140,3 +140,42 @@
     })
   })
 })()
+
+/* Slider da primeira tela */
+;(function () {
+  var root = document.querySelector('[data-slider]'); if (!root) return
+  var slides = root.querySelectorAll('.slide'), dots = root.querySelectorAll('[data-slide-to]'), cur = 0, timer = null
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  function go(n) {
+    cur = (n + slides.length) % slides.length
+    slides.forEach(function (s, i) { s.classList.toggle('is-active', i === cur); if (i === cur) s.removeAttribute('aria-hidden'); else s.setAttribute('aria-hidden', 'true') })
+    dots.forEach(function (d, i) { d.classList.toggle('is-active', i === cur) })
+    var img = slides[cur].querySelector('img'); if (img && img.loading === 'lazy') img.loading = 'eager'
+  }
+  function play() { stop(); if (!reduce) timer = setInterval(function () { go(cur + 1) }, 6000) }
+  function stop() { if (timer) clearInterval(timer); timer = null }
+  root.querySelector('[data-slide-next]').addEventListener('click', function () { go(cur + 1); play() })
+  root.querySelector('[data-slide-prev]').addEventListener('click', function () { go(cur - 1); play() })
+  dots.forEach(function (d) { d.addEventListener('click', function () { go(+d.getAttribute('data-slide-to')); play() }) })
+  root.addEventListener('mouseenter', stop); root.addEventListener('mouseleave', play)
+  var x0 = null
+  root.addEventListener('touchstart', function (e) { x0 = e.touches[0].clientX }, { passive: true })
+  root.addEventListener('touchend', function (e) { if (x0 === null) return; var dx = e.changedTouches[0].clientX - x0; if (Math.abs(dx) > 50) { go(cur + (dx < 0 ? 1 : -1)); play() } x0 = null })
+  setTimeout(function () { slides.forEach(function (s) { var i = s.querySelector('img'); if (i) i.loading = 'eager' }) }, 2500)
+  play()
+})()
+
+/* Antes e depois: comparação e filtro */
+;(function () {
+  document.querySelectorAll('[data-compare]').forEach(function (c) {
+    var r = c.querySelector('input'); r.addEventListener('input', function () { c.style.setProperty('--pos', r.value + '%') })
+  })
+  var btns = document.querySelectorAll('[data-ad-filter]')
+  btns.forEach(function (b) {
+    b.addEventListener('click', function () {
+      var f = b.getAttribute('data-ad-filter')
+      btns.forEach(function (x) { x.classList.toggle('is-active', x === b) })
+      document.querySelectorAll('[data-ad-proc]').forEach(function (el) { el.hidden = !!f && el.getAttribute('data-ad-proc') !== f })
+    })
+  })
+})()
