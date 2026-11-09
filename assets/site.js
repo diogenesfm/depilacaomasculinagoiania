@@ -52,6 +52,7 @@
     if (loaded && CFG.ads && name === 'whatsapp_click') gtag('event', 'conversion_intent_whatsapp', params) // configure a conversão no Google Ads
     if (loaded && window.fbq && name === 'whatsapp_click') window.fbq('track', 'Contact')
   }
+  window.ELEMENTUS_TRACK = track
 
   document.addEventListener('DOMContentLoaded', function () {
     // Consentimento
@@ -179,3 +180,42 @@
     })
   })
 })()
+
+;(function () {
+  // Sua ficha de avaliação: monta a mensagem e abre o WhatsApp da clínica
+  document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('[data-ficha]').forEach(function (f) {
+      var btn = f.querySelector('.ficha-btn'), help = f.querySelector('.ficha-help')
+      var MSG_VAZIO = 'Escolha pelo menos um item para continuar.', MSG_OK = 'Pronto. Você vai abrir o WhatsApp com a mensagem escrita.'
+      function marcados() { return Array.prototype.slice.call(f.querySelectorAll('input[type=checkbox]:checked')) }
+      function atualiza() {
+        var ok = marcados().length > 0
+        btn.setAttribute('aria-disabled', ok ? 'false' : 'true')
+        help.textContent = ok ? MSG_OK : MSG_VAZIO
+      }
+      f.addEventListener('change', atualiza)
+      // radio opcional: clicar de novo no horário marcado desmarca
+      f.querySelectorAll('input[type=radio]').forEach(function (r) {
+        r.addEventListener('click', function () { if (r.dataset.was === '1') { r.checked = false; r.dataset.was = '' } else { f.querySelectorAll('input[type=radio]').forEach(function (o) { o.dataset.was = '' }); r.dataset.was = '1' } })
+      })
+      f.addEventListener('submit', function (e) {
+        e.preventDefault()
+        var itens = marcados()
+        if (!itens.length) {
+          help.textContent = ''
+          setTimeout(function () { help.textContent = MSG_VAZIO }, 30)
+          var first = f.querySelector('input[type=checkbox]'); if (first) first.focus()
+          return
+        }
+        var vals = itens.map(function (i) { return i.getAttribute('data-value') })
+        var hr = f.querySelector('input[type=radio]:checked')
+        var msg = 'Olá! Quero agendar uma avaliação na ' + f.getAttribute('data-empresa') + '. Tenho interesse em: ' + vals.join(', ') + '.'
+        if (hr) msg += ' Prefiro ' + hr.getAttribute('data-value') + '.'
+        if (window.ELEMENTUS_TRACK) window.ELEMENTUS_TRACK('whatsapp_click', { cta_position: 'ficha_avaliacao', procedure: itens.map(function (i) { return i.getAttribute('data-slug') }).join(','), page_path: location.pathname })
+        var w = window.open('https://wa.me/' + f.getAttribute('data-wa') + '?text=' + encodeURIComponent(msg), '_blank', 'noopener')
+        if (w) w.opener = null
+      })
+      atualiza()
+    })
+  })
+})();
