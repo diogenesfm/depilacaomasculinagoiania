@@ -219,3 +219,28 @@
     })
   })
 })();
+
+/* Antes, durante e depois: transição entre 3 etapas (barra 0–200 ou botões) */
+;(function () {
+  document.querySelectorAll('[data-stages]').forEach(function (box) {
+    var st = box.querySelectorAll('.ad-stage'), r = box.querySelector('input'), bs = box.querySelectorAll('[data-step]')
+    function show(v) {
+      v = Math.max(0, Math.min(200, +v))
+      st.forEach(function (el, i) { var d = Math.abs(v - i * 100); el.style.opacity = String(Math.max(0, 1 - d / 100)) })
+      var near = Math.round(v / 100)
+      bs.forEach(function (b, i) { b.setAttribute('aria-pressed', String(i === near)) })
+      r.setAttribute('aria-valuetext', ['Antes', 'Durante', 'Depois'][near])
+    }
+    r.addEventListener('input', function () { show(r.value) })
+    bs.forEach(function (b) {
+      b.addEventListener('click', function () {
+        var to = +b.getAttribute('data-step') * 100, from = +r.value, t0 = null
+        var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches
+        if (reduce) { r.value = to; show(to); return }
+        function step(ts) { if (!t0) t0 = ts; var k = Math.min(1, (ts - t0) / 450); var v = from + (to - from) * (1 - Math.pow(1 - k, 3)); r.value = v; show(v); if (k < 1) requestAnimationFrame(step) }
+        requestAnimationFrame(step)
+      })
+    })
+    show(0)
+  })
+})()

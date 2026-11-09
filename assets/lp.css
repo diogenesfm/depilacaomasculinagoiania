@@ -125,3 +125,10 @@ footer a{color:#cfe0f5}
 @media (max-width:760px){.areas,.cmp{grid-template-columns:1fr}}
 .center{padding-left:20px;padding-right:20px}
 @media (max-width:900px){.hero-img img{width:100%;height:auto;aspect-ratio:4/3;object-fit:cover;object-position:center 30%}}
+.video-poster img{opacity:1}
+.video-poster::after{content:none}
+.video-poster .play{z-index:2}
+.video-dur{position:absolute;right:14px;bottom:12px;z-index:2;background:rgba(7,20,47,.8);color:#fff;font-family:var(--head);font-weight:700;font-size:.8rem;letter-spacing:.1em;padding:3px 8px}
+/* vídeo + 8 motivos como um bloco só */
+#video{padding-bottom:40px}
+.motivos{padding-top:24px}
